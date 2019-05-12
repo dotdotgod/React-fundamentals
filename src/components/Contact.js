@@ -1,35 +1,66 @@
 import React, { Component } from "react";
 import ContactInfo from "./ContactInfo";
 import ContactDetails from "./ContactDetails";
+import ContactCreate from "./ContactCreate";
 
 class Contact extends Component {
   constructor(props) {
     super(props);
+    const contactData = localStorage.contactData;
+    console.log(contactData);
+
     this.state = {
       selectedKey: -1,
       keyword: "",
-      contactData: [
-        {
-          name: "Abet",
-          phone: "010-0000-0001"
-        },
-        {
-          name: "Betty",
-          phone: "010-0000-0002"
-        },
-        {
-          name: "Eharlie",
-          phone: "010-0000-0003"
-        },
-        {
-          name: "David",
-          phone: "010-0000-0004"
-        }
-      ]
+      contactData: contactData ? JSON.parse(contactData) : []
     };
 
     this.handleChange = this.handleChange.bind(this);
     this.handleClick = this.handleClick.bind(this);
+    this.handleCreate = this.handleCreate.bind(this);
+    this.handleRemove = this.handleRemove.bind(this);
+    this.handleEdit = this.handleEdit.bind(this);
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      JSON.stringify(prevState.contactData) !==
+      JSON.stringify(this.state.contactData)
+    ) {
+      localStorage.contactData = JSON.stringify(this.state.contactData);
+    }
+  }
+  handleEdit(name, phone) {
+    if (this.state.selectedKey > 0) {
+      this.setState({
+        contactData: [
+          ...this.state.contactData.slice(0, this.state.selectedKey),
+          {
+            name: name,
+            phone: phone
+          },
+          ...this.state.contactData.slice(this.state.selectedKey + 1)
+        ]
+      });
+    }
+  }
+
+  handleRemove() {
+    if (this.state.selectedKey > 0) {
+      this.setState({
+        contactData: [
+          ...this.state.contactData.slice(0, this.state.selectedKey),
+          ...this.state.contactData.slice(this.state.selectedKey + 1)
+        ],
+        selectedKey: -1
+      });
+    }
+  }
+
+  handleCreate(contact) {
+    this.setState({
+      contactData: [...this.state.contactData, contact]
+    });
   }
 
   handleClick(key) {
@@ -82,7 +113,10 @@ class Contact extends Component {
         <ContactDetails
           isSelected={this.state.selectedKey !== -1}
           contact={this.state.contactData[this.state.selectedKey]}
+          onRemove={this.handleRemove}
+          onEdit={this.handleEdit}
         />
+        <ContactCreate onCreate={this.handleCreate} />
       </div>
     );
   }
@@ -94,4 +128,5 @@ ContactDetails.defaultProps = {
     phone: ""
   }
 };
+
 export default Contact;
